@@ -7,4 +7,310 @@ GWBGameJam - 任务完成记录
 备注：项目位于 D:\Unity Workplace\GWBGameJam，包含完整 Unity 项目结构（Assets、Packages、ProjectSettings、.git 等），已连接 GitHub 仓库 APieceOfToast123/GWBGameJam。
 
 ========================================
+
+[2026-06-27 当前会话]
+任务：阅读 TASK_LOG.txt，建立每次对话后自动追加任务摘要的工作流
+状态：完成
+备注：用户要求每次对话结束后将本次任务摘要（含时间）写入 TASK_LOG.txt。已确认文件结构，记忆已保存。
+
+========================================
+
+[2026-06-27]
+指令：将 TASK_LOG.txt 作为开发文档，每次执行任何指令都要记录进去
+操作：更新记忆规则，改为每次执行指令后立即追加记录（而非仅在对话结束时）
+状态：完成
+备注：日志格式包含时间、指令、操作、状态、备注字段
+
+========================================
+
+[2026-06-27 对话阶段]
+指令：进行揉面团小游戏的 Spec 设计对话
+操作：通过多轮对话完成完整游戏设计文档，涵盖所有系统
+状态：完成
+备注：
+  核心玩法 - 上半屏5条透视球道+怪物，下半屏揉面桌
+  面团系统 - 5档（太软/最软3:2/中等1:1/最硬1:2/太硬），各对应不同怪物或无效
+  烤制系统 - 0~0.5s不熟，0.5~1.5s熟（有效），1.5s+烤焦，2.5s强制丢出（Config可调）
+  怪物系统 - 3种，8步移动到桌子，40个点位由Editor计算器生成，ScaleCurve控制透视缩放
+  关卡系统 - 3关（10/15/20只怪，9s/7s/5s生成间隔），击败全部怪物通关
+  桌子HP   - 计数制，被碰N次阵亡（Config可调）
+  对应关系 - 最软/中等/最硬分别击杀A/B/C怪物（Config可配）
+  菜单     - Main Menu / Pause Menu / 阵亡界面 / 通关界面
+  开发工具 - Editor点位计算器 / Ctrl+Shift+P游戏内加速切换
+
+========================================
+
+[2026-06-27 对话阶段]
+指令：建立 DecisionLog.md 及开发工作流规则
+操作：创建 DecisionLog.md（记录今日全部设计决定）；将工作流规则存入 AI 记忆；更新 MEMORY.md 索引
+状态：完成
+备注：
+  - DecisionLog 路径：D:\Unity Workplace\GWBGameJam\DecisionLog.md
+  - 需求三分类：Gameplay/Balance/Tech
+  - 改动前固定先分析，不直接写代码
+  - Balance 数值全部走 ScriptableObject，策划 Inspector 直接改
+
+========================================
+
+[2026-06-27 Spec Design Phase]
+指令：针对5个歧义问题收集答案，推进Spec封版
+操作：确认所有歧义（面团区间制、操作方式、怪物逃跑计总数、落点锁定+预测机制、关卡过渡重置）；更新DecisionLog
+状态：完成
+备注：所有前置问题已解决，等待用户确认后开始写第一个Spec
+
+========================================
+
+[2026-06-27 Spec Design Phase — 结构修正]
+指令：用户对Spec顺序和工作流提出4处重要修正
+操作：更新Spec Tree顺序；新增013_CodingRules和014_ReviewChecklist；确立逐Spec Review工作流；更新AI记忆
+状态：完成
+备注：
+  关键修正1：Architecture移至第3位（GameLoop之后），原因：架构决策必须先于系统设计
+  关键修正2：UI跟着每个系统同步开发，不在最后统一写
+  关键修正3：新增013_CodingRules（AI每次编码前必读）
+  关键修正4：新增014_ReviewChecklist（每个Task完成后执行）
+  工作流：写Spec → Review → 更新DecisionLog → 同步Architecture → 用户确认 → 下一个Spec
+  下一步：写001_GameLoop.md（等待用户确认）
+
+========================================
+
+[2026-06-27 Spec Writing]
+指令：编写 001_GameLoop.md
+操作：创建 Docs/ 目录；按统一模板完整编写 GameLoop Spec
+状态：完成（Draft，等待Review）
+备注：
+  - 6个顶层状态：MAIN_MENU / PLAYING / PAUSED / LEVEL_TRANSITION / DEATH / VICTORY
+  - 13条 Acceptance Criteria
+  - Edge Case #1（关卡过渡界面内容）标记为待确认
+  - 路径：Docs/001_GameLoop.md
+
+========================================
+
+[2026-06-27 Spec Review]
+指令：Review 001_GameLoop.md，确认 Edge Case #1
+操作：用户确认方案B（按任意键过渡界面）；更新GameLoop Spec的Edge Case/状态表/AC；更新DecisionLog
+状态：完成
+备注：001_GameLoop.md 状态从 Draft → Approved（Edge Cases 全部解决）
+下一步：012_Architecture.md
+
+========================================
+
+[2026-06-27 Spec Writing]
+指令：编写 012_Architecture.md
+操作：创建 Docs/012_Architecture.md，涵盖EventBus规范、场景结构、Folder结构、命名规范、程序集划分、禁止模式、数据所有权表
+状态：完成（Approved，等待Review）
+备注：
+  - 静态泛型 EventBus<T>（纯 static class，T 为 readonly struct）
+  - 2个场景：MainMenu.unity + Game.unity
+  - 2个程序集：GWBGameJam.Runtime + GWBGameJam.Editor
+  - 顶级命名空间：GWBGameJam
+  - 禁止模式：FindObjectOfType / Singleton / GameObject.Find / GetComponent in Update 等
+  - Script Execution Order：GameLoop 最低（最晚执行）
+
+========================================
+
+[2026-06-27 Spec Review]
+指令：Review 012_Architecture.md，确认 Edge Case #2
+操作：用户确认方案A（OnDestroy自清理，无ClearAll）；更新Architecture Spec；更新DecisionLog（补录5条架构决策）
+状态：完成
+备注：012_Architecture.md 状态 Approved，所有 Edge Cases 解决
+下一步：010_ConfigSchema.md
+
+========================================
+
+[2026-06-27 Spec Writing]
+指令：编写 010_ConfigSchema.md
+操作：创建完整 Config 数据契约文档，覆盖9个SO定义、4个枚举、SO引用关系图
+状态：完成（Draft，等待Review）
+备注：
+  - 9个SO：GameLoopConfig/BakingConfig/MonsterConfig/LevelConfig/TableConfig/DoughConfig/DoughStateBoundaryConfig/LaneWaypointConfig/MonsterData
+  - LaneWaypointConfig使用 LaneWaypoints[] 包装 Vector2[]（Unity无法直接序列化二维数组）
+  - DoughStateBoundaryConfig独立SO，含4个边界阈值+1个容错半宽
+  - 所有约束违规在Awake中Validate并输出Error，游戏不崩溃
+  - 路径：Docs/010_ConfigSchema.md
+
+========================================
+
+[2026-06-27 Spec Review]
+指令：Review 010_ConfigSchema.md，确认A/B两问
+操作：确认水粉比方向（水÷面粉）；补入 RecordedStepCount 字段及过期检测逻辑；更新Edge Case/AC；更新DecisionLog
+状态：完成
+备注：010_ConfigSchema.md 状态 Draft → Approved
+下一步：002_LaneSystem.md
+
+========================================
+
+[2026-06-27 Spec Writing]
+指令：编写 002_LaneSystem.md
+操作：创建 Docs/002_LaneSystem.md，覆盖球道几何、悬停高亮、点位API、Editor计算器接口
+状态：完成（Draft，等待Review）
+备注：
+  - 5条透视四边形球道，PolygonCollider2D + 鼠标射线检测
+  - Visual/Collider 分离节点设计（缩放不影响碰撞判定）
+  - 悬停时替换Sprite + Visual节点Scale放大
+  - 公开API：GetWaypoint(laneIndex, posIndex) / GetHoveredLaneIndex()
+  - 发布事件：OnLaneHoverChanged
+  - 启动时验证LaneWaypointConfig过期检测
+  - 路径：Docs/002_LaneSystem.md
+
+========================================
+
+[2026-06-27 Spec Review]
+指令：Review 002_LaneSystem.md，确认悬停激活时机
+操作：用户确认方案B（仅烤制阶段激活）；更新Gameplay Rules/State Machine/Subscribe/Edge Case/AC；更新DecisionLog
+状态：完成
+备注：002_LaneSystem.md 状态 Draft → Approved；新增Edge Case #6（烤制结束时立即重置球道）
+下一步：003_MonsterSystem.md
+
+========================================
+========================================
+
+[2026-06-27 Spec Writing]
+指令：编写 003_MonsterSystem.md
+操作：创建 Docs/003_MonsterSystem.md，覆盖怪物生命周期、状态机、移动动画、透视缩放、公开API
+状态：完成（Draft，等待Review）
+备注：
+  - 状态机：Idle → PendingMove → Moving → Idle/ReachedTable；Defeated 从任意状态可触发
+  - 移动计时：MoveIntervalSeconds = 完整周期（等待+动画），MoveDuration = 动画部分（新增Config字段）
+  - 缩放插值：动画期间每帧由 ScaleCurve.Evaluate(lerp) 计算，静止时取对应 posIndex 的固定值
+  - 公开API：SpawnMonster/GetMonsterInLane/IsLaneOccupied/DefeatMonster/TriggerWrongHitFeedback/GetTargetPosition
+  - Edge Case #3：最后点位的PendingMove状态，GetTargetPosition 返回当前点而非越界
+  - MonsterConfig 新增：MoveDuration / WrongHitFlashCount / WrongHitFlashDuration（需回写 ConfigSchema）
+  - 路径：Docs/003_MonsterSystem.md
+
+========================================
+========================================
+
+[2026-06-27 ConfigSchema 追加更新]
+指令：用户确认003_MonsterSystem三个新Config字段，立即回写010_ConfigSchema.md
+操作：MonsterConfig 表格追加 MoveDuration/WrongHitFlashCount/WrongHitFlashDuration；补 MoveDuration 约束说明；补 Edge Case #6；版本号升至 1.1
+状态：完成
+备注：010_ConfigSchema.md 保持 Approved 状态（小版本追加，不影响已有字段）
+
+========================================
+========================================
+
+[2026-06-27 Spec Writing]
+指令：编写 004_DoughSystem.md（用户确认：UI弹性跟随、右键固定速率）
+操作：创建 Docs/004_DoughSystem.md；DoughConfig 追加 InitialRatio/MaxRatio 字段至 010_ConfigSchema v1.2；更新 DecisionLog
+状态：完成（Draft，等待Review）
+备注：
+  - CurrentRatio 立即更新（无平滑），UISystem 负责弹性动画
+  - 右键固定速率线性增加，每帧 ratio += WaterFillRate * dt
+  - 投掷窗口：OnThrowStarted→None / OnThrowCompleted→重置为 InitialRatio
+  - 输入有效条件：PLAYING + BakingState==Idle + DoughState!=None
+  - Edge Case #4：同档位内 ratio 变化不重复广播 OnDoughStateChanged
+  - 路径：Docs/004_DoughSystem.md
+
+========================================
+========================================
+
+[2026-06-27 Spec Writing]
+指令：编写 005_BakingSystem.md（用户确认：松开即投、无悬停→随机球道）
+操作：创建 Docs/005_BakingSystem.md；更新 DecisionLog（3条烤制决策）
+状态：完成（Draft，等待Review）
+备注：
+  - 计时器：Idle→Undercooked→Cooked→Burnt→强制投掷→Idle
+  - 投掷球道：GetHoveredLaneIndex() == -1 时 Random.Range(0,5)，主动和强制规则相同
+  - 投掷后立即回 Idle，不等待 ThrowSystem 动画
+  - DoughState=None 时空格无效（边界保护）
+  - 暂停时冻结 timer（_isPaused 标志位）
+  - DevSpeedMultiplier 通过 Time.deltaTime 自动生效
+  - 路径：Docs/005_BakingSystem.md
+
+========================================
+========================================
+
+[2026-06-27 Spec Writing]
+指令：编写 006_ThrowSystem.md（抛物线动画、到达即判定）
+操作：创建 Docs/006_ThrowSystem.md；010_ConfigSchema 升至 v1.3（新增 ThrowConfig SO + SO引用关系）；更新 DecisionLog（4条投掷决策）
+状态：完成（Draft，等待Review）
+备注：
+  - 抛物线公式：pos(t)=Lerp(start,end,t)+up*PeakHeight*4t(1-t)，固定 ThrowDuration
+  - 比例在 OnThrowRequested 同帧捕获（_capturedRatio），飞行期间不变
+  - 命中判定：|capturedRatio - doughStateCenter| <= ToleranceHalfWidth
+  - EmptyLane 落点：LaneSystem.GetWaypoint(laneIndex, MoveStepCount/2)
+  - 到达时立即判定（同帧），特效不阻塞事件流
+  - 路径：Docs/006_ThrowSystem.md
+
+========================================
+========================================
+
+[2026-06-27 Spec Writing]
+指令：确认005/006后继续写 008_TableSystem.md
+操作：创建 Docs/008_TableSystem.md
+状态：完成（Draft，等待Review）
+备注：
+  - 纯计数系统：OnMonsterReachedTable → CurrentHP -= 1 → HP=0 发布 OnTableDestroyed
+  - Guard check 防止同帧多次 OnTableDestroyed
+  - OnLevelStarted 重置 HP = MaxHits
+  - MaxHits=0 时 Awake 强制为 1
+  - 路径：Docs/008_TableSystem.md
+
+========================================
+========================================
+
+[2026-06-27 Spec Writing]
+指令：编写 007_LevelSystem.md（第一只怪物延迟生成、全满完整重置）
+操作：创建 Docs/007_LevelSystem.md；更新 DecisionLog（2条关卡设计决策）
+状态：完成（Draft，等待Review）
+备注：
+  - 状态机：WaitingToSpawn / WaitingForAllExit / Inactive / Paused
+  - 全满时 _spawnTimer = 0（等待下一个完整间隔，方案B）
+  - 退场 = OnMonsterDefeated + OnMonsterReachedTable 各计1次
+  - _exitedCount == TotalMonsters → OnLevelCleared
+  - _availableMonsterTypes 为 Inspector [SerializeField] MonsterData[] 数组
+  - OnLevelStarted 携带 levelIndex（int）以加载对应 LevelData
+  - 路径：Docs/007_LevelSystem.md
+
+========================================
+========================================
+
+[2026-06-27 Spec Writing]
+指令：编写 009_UISystem.md（左=水/右=粉，不显示进度数字）
+操作：创建 Docs/009_UISystem.md；更新 DecisionLog（3条UI决策）
+状态：完成（Draft，等待Review）
+备注：
+  - Canvas 面板：HUD/MainMenu/PauseMenu/LevelTransition/Death/Victory
+  - 比例条：左=水(软)，右=粉(硬)，指示器弹性跟随（ElasticSpeed=12，SerializeField）
+  - DoughState=None时隐藏指示器；OnThrowCompleted后 snap 回 InitialRatio
+  - 烤制指示器：黄/绿/红三色 + 进度条，每帧读 GetBakingTimer()
+  - 桌子HP条：订阅 OnMonsterReachedTable / OnLevelStarted
+  - Action Required：LevelTransition 关卡号数据来源待 GameLoop Review 最终确认
+  - 路径：Docs/009_UISystem.md
+
+========================================
+========================================
+
+[2026-06-27 Spec Writing]
+指令：编写 011_DevTools / 013_CodingRules / 014_ReviewChecklist
+操作：创建三个文档
+状态：完成（Draft，等待Review）
+备注：
+  011_DevTools：EditorWindow + LaneCalculatorData SO；Auto Distribute + Bake + Preview；交点算法（t = (y-y1)/(y2-y1)）；顶点按X排序识别左右边缘
+  013_CodingRules：禁止模式表、EventBus配对规范、Awake Validate模式、Update计时/协程规则、文件结构、场景层级
+  014_ReviewChecklist：10节检查清单（禁止模式/EventBus/Awake/命名空间/SO/数据所有权/Spec符合性/Unity实践/日志/TASK_LOG）
+  路径：Docs/011_DevTools.md / Docs/013_CodingRules.md / Docs/014_ReviewChecklist.md
+
+========================================
+========================================
+
+[2026-06-27 工作流文档]
+指令：编写 CLAUDE.md 和 StarterPrompt，供工友启动 Spec Coding 工作流
+操作：创建根目录 CLAUDE.md（Claude 自动加载的项目指南）；创建 Docs/StarterPrompt.md（含可复制 prompt 和常见场景参考）
+状态：完成
+备注：
+  CLAUDE.md 覆盖：项目概述/Spec状态表/工作流三分类/TASK_LOG规则/核心技术约束/重要文件路径
+  StarterPrompt.md 覆盖：启动 prompt（可直接复制）+ 4 种使用场景 + 5 个常见 prompt 参考
+
+========================================
+========================================
+
+[2026-06-27 文档]
+指令：为工友写 README.md
+操作：创建根目录 README.md
+状态：完成
+备注：覆盖游戏玩法简介、环境要求、快速开始、项目结构、Claude 使用方法（含可复制 prompt）、Balance 调整速查表、关键文档索引
+
+========================================
 （后续每次完成任务后追加记录）
