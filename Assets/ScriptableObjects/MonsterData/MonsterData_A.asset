@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: MonsterData_A
   m_EditorClassIdentifier: 
   MonsterName: 
-  IdleSprite: {fileID: 0}
-  HitSprite: {fileID: 0}
+  IdleSprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  HitSprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
   TargetDoughState: 2

@@ -69,7 +69,7 @@ namespace GWBGameJam
             _victoryCanvas.SetActive(e.NewState == GameState.Victory);
 
             if (e.NewState == GameState.LevelTransition && _levelTransitionText != null)
-                _levelTransitionText.text = $"第 {_clearedLevelIndex + 1} 关通过！";
+                _levelTransitionText.text = $"Level {_clearedLevelIndex + 1} Clear!";
         }
     }
 }
