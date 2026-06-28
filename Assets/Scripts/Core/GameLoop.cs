@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace GWBGameJam
 {
@@ -25,7 +26,7 @@ namespace GWBGameJam
 
         private void Start()
         {
-            TransitionTo(GameState.MainMenu);
+            StartGame(); // Game 场景加载即开始第一关
         }
 
         private void Update()
@@ -65,7 +66,7 @@ namespace GWBGameJam
         {
             Time.timeScale = 1f;
             _devSpeedActive = false;
-            TransitionTo(GameState.MainMenu);
+            SceneManager.LoadScene("MainMenu");
         }
 
         public void AdvanceFromTransition()
