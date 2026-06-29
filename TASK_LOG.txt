@@ -762,3 +762,80 @@ Architecture / CodingRules / TaskBreakdown / ManualInstructions / Code 已完全
 备注：根本原因是场景手动搭建时 Canvas 的 RectTransform scale 被设为 0
 
 ========================================
+
+[2026-06-28 Bug 逐项排查 — Camera]
+指令：用户测试运行未见 Camera 报错，要求逐一核实 TASK_LOG/StarterPrompt 记录的 bug 是否真实存在
+操作：核查 Game.unity（Main Camera m_TagString=MainCamera 已设）+ LaneManager.cs（_mainCamera 仅在 Update 的 _needsHoverCheck && IsHoverActive 双守卫下解引用）
+状态：完成（结论：非 bug）
+备注：TASK_LOG 旧记录「Camera Tag 未设 → LaneManager NRE」作废，与用户实测一致；文档整理时删除该条
+
+========================================
+
+[2026-06-28 怪物显示 — DisplayScale]
+指令：怪物无美术不显示；用户决定手动在 SO 赋 sprite，并加一个策划可编辑的 scale factor 防止 sprite 太小
+操作：
+  - MonsterData.cs 新增 DisplayScale 字段（float，默认 1，[Min(0.01)] + Tooltip）
+  - MonsterController.ApplyScale 乘 DisplayScale（Data 为 null 时回退 1）
+  - 010_ConfigSchema.md MonsterData 表追加 DisplayScale 行
+  - DecisionLog.md 追加 [Tech] DisplayScale 决策 + Camera 非 bug 结论
+状态：完成
+备注：sprite 由策划手动赋值；DisplayScale 乘在 ScaleCurve 之上，保留透视比例
+
+========================================
+
+[2026-06-28 怪物 SO 现状核查]
+指令：用户称 SO 已赋值，要求查看并记录
+操作：读取 MonsterData_A/B/C.asset
+状态：完成
+备注：
+  - A/B/C 的 IdleSprite/HitSprite 均已赋值（Unity 内置 sprite：A/B=10907 UISprite，C=10913 Knob）
+  - TargetDoughState：A=2(Softest) B=3(Medium) C=4(Hardest)，与 ConfigSchema 一致
+  - MonsterName 全空（仅调试标签，不影响运行）
+  - 结论：sprite 非 null → 怪物看不见多半是位置/缩放问题（与「球道点位错误」bug 吻合），故加位置 debug 日志定位
+
+========================================
+
+[2026-06-28 Debug 框架 — 怪物位置/生成点日志]
+指令：每秒打印怪物位置、打印生成点到 debug 文件；要求分割 debug 区域、单布尔开关、日志单独文件夹、可记忆复用
+操作：
+  采用「内联标注可删区域」方案（用户认可，否决重框架，省手动连线）：
+  - MonsterController.cs 加 DEBUG 区域「怪物位置」：const bool DebugLogPosition + 每 1s 写 Debug/MonsterPosition.log（lane/posIndex/pos/scale）
+  - MonsterSystem.cs 加 DEBUG 区域「怪物生成点」：const bool DebugLogSpawn + 写 Debug/MonsterSpawn.log（lane/type/spawnPos）
+  - 日志路径：项目根 Debug/（Application.dataPath/../Debug，Assets 外不导入）
+  - 横幅 ╔══ DEBUG ══╗...╚══╝ 包裹，整块可删；#pragma 162 抑制关闭时警告
+  规范存入记忆：feedback_debug_convention.md（+ MEMORY.md 索引）
+状态：完成（待用户在 Unity 运行后回传日志诊断）
+备注：未建新 spec / 未改 ConfigSchema（临时脚手架，与易删除定位一致）；测试前可删 Debug/ 文件夹保持日志干净
+
+========================================
+
+[2026-06-28 分辨率独立 — 16:9 黑边]
+指令：让游戏在任何设备都固定 1920×1080 观感；用户选方案 A（黑边锁 16:9），第 1 层 CanvasScaler 已自行完成
+操作：
+  - 新建 Assets/Scripts/Core/AspectRatioEnforcer.cs（[RequireComponent(Camera)]，Awake 缓存 Camera，Update 仅在 Screen 尺寸变化时重算 Camera.rect，强制 16:9 letterbox）
+  - DecisionLog 追加 [Tech] 分辨率独立决策
+状态：完成（代码层）；待用户手动挂脚本 + 改 Canvas 渲染模式 + Player Settings
+备注：
+  待用户手动：
+  1) 主相机加 AspectRatioEnforcer，目标 1920×1080
+  2) 若要黑边同时盖住 UI → 各 Canvas 改 Screen Space - Camera 并指定主相机（否则 Overlay 下 UI 仍铺满物理屏，溢出到黑边区）
+  3) Player Settings → Resolution and Presentation → 默认 1920×1080
+  注意：单相机 rect<1 时黑边区若出现残影，需加一个 ClearFlags=Solid Black 的背景相机（depth 更低）兜底
+
+========================================
+
+[2026-06-28 怪物不可见 — 根因定位 + 相机修复（里程碑）]
+指令：怪物跑几次都看不见，要求方案
+操作：
+  读 Debug/MonsterSpawn.log + MonsterPosition.log，确认怪物坐标在像素级 (X 597~1300, Y 327~837)，逻辑正常
+  读 Game.unity：主相机为透视(orthographic:0)、FOV60、位置(0,0,-10) → 仅框住原点附近 ±7，怪物全在视野外
+  BG_Canvas 为 Screen Space - Camera、PlaneDistance=100（z≈90 远平面）→ 怪物 z=0 会渲染在背景前，不被挡
+  方案（用户手动 Inspector）：主相机改 Orthographic、Position(960,540,-10)、Size 540，1:1 框住 1920×1080 像素世界
+结果：用户执行后怪物可见（渲染链路打通，里程碑）；为看清把怪物放大约 1000 倍
+状态：完成
+备注：
+  - MonsterConfig.ScaleCurve 实际为 0.1→1.5（近/远 15 倍透视比）；绝对尺寸靠 DisplayScale/倍率补偿（内置 UI sprite 在像素世界里基准极小）
+  - 倍率应加在 MonsterData.DisplayScale 或 prefab 根节点，勿加在 _visual 子节点（ApplyScale 每帧覆盖 _visual.localScale）
+  - 下一个真问题：球道 X 挤成两堆（lane0/1≈597，lane3/4≈1297），LaneCalculator 从 PolygonCollider2D 烘焙的 X 算错（即「球道点位错误」），待修
+
+========================================

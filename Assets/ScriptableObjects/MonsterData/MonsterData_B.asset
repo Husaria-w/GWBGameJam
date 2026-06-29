@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56a9105e3ed3ca24f828078b68cee69c, type: 3}
   m_Name: MonsterData_B
   m_EditorClassIdentifier: 
-  MonsterName: 
-  IdleSprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  HitSprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  MonsterName: B
+  IdleSprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  HitSprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
   TargetDoughState: 3
+  DisplayScale: 1000

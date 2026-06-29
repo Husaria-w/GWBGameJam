@@ -68,6 +68,21 @@ namespace GWBGameJam
             mc.Initialize(laneIndex, data, _config, _laneManager);
             _monsters[laneIndex] = mc;
 
+            // ╔══════════════════ DEBUG 区域：怪物生成点 ══════════════════╗
+            // 整块删除即可移除；DebugLogSpawn 改 false 关闭本区域
+#pragma warning disable 162
+            const bool DebugLogSpawn = true;
+            if (DebugLogSpawn)
+            {
+                string dir = System.IO.Path.Combine(Application.dataPath, "../Debug");
+                System.IO.Directory.CreateDirectory(dir);
+                System.IO.File.AppendAllText(
+                    System.IO.Path.Combine(dir, "MonsterSpawn.log"),
+                    $"[{System.DateTime.Now:HH:mm:ss}] lane={laneIndex} type={data.name} spawnPos={(Vector2)mc.transform.position}\n");
+            }
+#pragma warning restore 162
+            // ╚════════════════════════════════════════════════════════════╝
+
             EventBus<OnMonsterSpawned>.Publish(new OnMonsterSpawned(laneIndex, data));
             return true;
         }

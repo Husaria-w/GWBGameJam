@@ -24,6 +24,13 @@ namespace GWBGameJam
         // _config may be null before Initialize; guard before reading
         public bool IsPendingMove => _config != null && !_isMoving && _moveTimer <= _config.PendingMoveThreshold;
 
+        // ╔══════════════════ DEBUG 区域：怪物位置 ══════════════════╗
+        // 整块删除即可移除；DebugLogPosition 改 false 关闭本区域
+        private const bool DebugLogPosition = true;
+        private const float DebugPositionInterval = 1f;
+        private float _debugPosTimer;
+        // ╚══════════════════════════════════════════════════════════╝
+
         private void Awake()
         {
             if (_visual == null)
@@ -53,6 +60,24 @@ namespace GWBGameJam
                 UpdateMovement();
             else
                 UpdateTimer();
+
+            // ╔══════════════════ DEBUG 区域：怪物位置 ══════════════════╗
+#pragma warning disable 162
+            if (DebugLogPosition)
+            {
+                _debugPosTimer += Time.deltaTime;
+                if (_debugPosTimer >= DebugPositionInterval)
+                {
+                    _debugPosTimer = 0f;
+                    string dir = System.IO.Path.Combine(Application.dataPath, "../Debug");
+                    System.IO.Directory.CreateDirectory(dir);
+                    System.IO.File.AppendAllText(
+                        System.IO.Path.Combine(dir, "MonsterPosition.log"),
+                        $"[{System.DateTime.Now:HH:mm:ss}] lane={LaneIndex} posIndex={_posIndex} pos={(Vector2)transform.position} scale={(_visual != null ? _visual.localScale.x : 0f):F3}\n");
+                }
+            }
+#pragma warning restore 162
+            // ╚══════════════════════════════════════════════════════════╝
         }
 
         private void UpdateTimer()
@@ -97,7 +122,8 @@ namespace GWBGameJam
         private void ApplyScale(float posLerp)
         {
             if (_visual == null) return;
-            _visual.localScale = Vector3.one * _config.ScaleCurve.Evaluate(posLerp);
+            float displayScale = Data != null ? Data.DisplayScale : 1f;
+            _visual.localScale = Vector3.one * (_config.ScaleCurve.Evaluate(posLerp) * displayScale);
         }
 
         private void ReachedTable()

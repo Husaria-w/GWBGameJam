@@ -13,14 +13,14 @@ MonoBehaviour:
   m_Name: LaneCalculatorData
   m_EditorClassIdentifier: 
   WaypointYPositions:
-  - 440.64
-  - 381.00336
-  - 321.36673
-  - 261.73007
-  - 202.09343
-  - 142.45679
-  - 82.82014
-  - 23.183498
+  - 837.306
+  - 764.4732
+  - 691.6403
+  - 618.8075
+  - 545.9747
+  - 473.14185
+  - 400.309
+  - 327.47617
   LaneRootNames:
   - Lane_0
   - Lane_1

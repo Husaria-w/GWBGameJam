@@ -258,6 +258,7 @@ Victory
 | IdleSprite | Sprite | 怪物正常状态图片 |
 | HitSprite | Sprite | 怪物受到错误面团攻击时的闪白底图（可与 IdleSprite 相同，由代码控制闪白效果）|
 | TargetDoughState | DoughState | 能击杀此怪物的面团档位（枚举）。仅 Softest / Medium / Hardest 有效 |
+| DisplayScale | float | 额外整体缩放倍率，乘在 MonsterConfig.ScaleCurve 之上（≥0.01，默认 1）。sprite 太小时调大此值，不影响透视缩放比例 |
 
 **实例清单：**
 

@@ -290,6 +290,22 @@ Config：待移动阈值 0.5s（Balance 可调）。
 
 ---
 
+## 2026-06-28（集成调试阶段）
+
+**[Tech] 怪物占位缩放采用 MonsterData.DisplayScale（每种怪独立），而非生成占位 sprite 或全局倍率**
+决定：在 MonsterData 增加 `DisplayScale`（float，默认 1，≥0.01），在 MonsterController.ApplyScale 中乘在 ScaleCurve 之上。sprite 由策划手动赋值到各 MonsterData。
+原因：sprite 与缩放放同一个 SO，策划「拖图 + 调大小」一站式完成；每种怪图原始尺寸不同，独立缩放最灵活；乘法叠加保留 ScaleCurve 的透视比例。
+
+**[Tech] 分辨率独立：锁定 16:9，用相机黑边（letterbox）而非真实像素锁定**
+决定：通过 (1) 各 Canvas 的 CanvasScaler→Scale With Screen Size 1920×1080；(2) 新增 `AspectRatioEnforcer` 脚本挂主相机，强制相机视口为 16:9，非 16:9 屏幕补黑边；(3) Player Settings 默认分辨率 1920×1080，实现「任何设备画面构图一致」。
+原因：物理上无法在任意设备强制 1920×1080 像素；锁定 16:9 + 等比缩放 + 黑边是标准的分辨率无关方案，保证评审在任何屏幕看到相同构图。
+注：脚本仅改 `Camera.rect`，不依赖 EventBus；Update 中只比较 Screen 尺寸（无 GetComponent），尺寸变化时才重算，符合 CodingRules。
+
+**[Tech] 排查确认 Main Camera 无 bug，TASK_LOG 旧记录作废**
+结论：Game.unity 的 Main Camera 已 Tag = MainCamera，`Camera.main`（LaneManager）能正常取到；且该引用仅在 Update 的 `_needsHoverCheck && IsHoverActive` 双守卫下使用，正常进入游戏不会解引用。TASK_LOG 中「Camera Tag 未设 → LaneManager NRE」为过期/误记。
+
+---
+
 ## 开发工作流规则
 
 **需求三分类：**
